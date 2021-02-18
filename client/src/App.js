@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import './App.css';
+import SpotifyLogin from './Login';
 
 function App() {
   const [msg, setMsg] = useState('not a response yet');
@@ -41,6 +42,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <SpotifyLogin />
         <Form onSubmit={handleSubmit}>
           <Form.Group controlId="song.url">
             <Form.Label>Paste a song URL here</Form.Label>
@@ -50,6 +52,7 @@ function App() {
             Share!
           </Button>
         </Form>
+
 
         <p>
           Hey I'm gonna show you a message!
