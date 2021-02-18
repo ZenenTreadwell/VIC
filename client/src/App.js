@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import { Button, Form } from 'react-bootstrap';
 import './App.css';
 
 function App() {
@@ -20,10 +20,37 @@ function App() {
     callAPIDemo();
   }, []);
 
+  const songlinkFetch = async (url) => {
+    const key = "";
+    const response = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(url)}&key=${key}`, {
+      method: 'GET',
+    });
+
+    if (response.ok) {
+      const res = await response.json();
+      console.log("we got this data back!");
+      console.log(res);
+    }
+  }
+
+  const handleSubmit = (event) => {
+    songlinkFetch(event.target[0].value);
+    event.preventDefault();
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <Form onSubmit={handleSubmit}>
+          <Form.Group controlId="song.url">
+            <Form.Label>Paste a song URL here</Form.Label>
+            <Form.Control type="url" placeholder="https://open.spotify.com/track/0VohiAknIPTucjlsux5A7V?si=YSjPplqqTCO1eorHF8WG-Q" />
+          </Form.Group>
+          <Button variant="primary" type="submit">
+            Share!
+          </Button>
+        </Form>
+
         <p>
           Hey I'm gonna show you a message!
         </p>
