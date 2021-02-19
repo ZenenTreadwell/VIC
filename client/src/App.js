@@ -3,6 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 import './App.css';
 import store from 'store';
 import SpotifyLogin from './Login';
+import Collage from './Collage';
 
 function App() {
   const [msg, setMsg] = useState('not a response yet');
@@ -63,6 +64,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <Collage />
         <SpotifyLogin />
         <p>{spotifyToken? `Check out my spotify token! ${spotifyToken}` : "No token :("}</p>
         <Form onSubmit={handleSubmit}>
