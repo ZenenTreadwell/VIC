@@ -4,6 +4,7 @@ import './App.css';
 import store from 'store';
 import SpotifyLogin from './Login';
 import Collage from './Collage';
+import PostModal from './PostModal';
 
 function App() {
   const [msg, setMsg] = useState('not a response yet');
@@ -64,6 +65,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <PostModal />
         <Collage />
         <SpotifyLogin />
         <p>{spotifyToken? `Check out my spotify token! ${spotifyToken}` : "No token :("}</p>

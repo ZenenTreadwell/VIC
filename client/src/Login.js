@@ -11,7 +11,8 @@ function SpotifyLogin() {
   const redirectUri = "https://localhost:3000";
   const scopes = [
     "user-read-currently-playing",
-      "user-read-playback-state",
+    "user-read-playback-state",
+    "user-modify-playback-state",
   ];
 
   useEffect(() => {
