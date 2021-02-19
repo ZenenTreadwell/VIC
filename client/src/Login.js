@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from 'react-bootstrap';
 import './App.css';
+import store from 'store';
 
 function SpotifyLogin() {
-  const [token, setToken] = useState(undefined);
   const authEndpoint = 'https://accounts.spotify.com/authorize';
 
   // Replace with your app's client ID, redirect URI and desired scopes
@@ -31,12 +31,14 @@ function SpotifyLogin() {
 
       let _token = hash.access_token;
       if (_token) {
-        setToken(_token);
+        store.set('SPOTIFY_TOKEN', _token);
       }
     }
 
     getTokenFromHash();
   }, []);
+
+  const token = store.get('SPOTIFY_TOKEN');
 
   return (
     <div>
@@ -49,7 +51,7 @@ function SpotifyLogin() {
       )}
       {token && (
         // Pass this token to the main application
-        <p>Login Successful: {token}</p>
+        <p>Login Successful!</p>
       )}
     </div>
   );

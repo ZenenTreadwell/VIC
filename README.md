@@ -3,6 +3,6 @@ Music-oriented social media aggregator for sharing and collecting music cross-pl
 
 ## To run it
 in the terminal: navigate to api, run "npm start"
-in a new terminal, navigate to client, run "npm start"
+in a new terminal, navigate to client, run "HTTPS=true npm start"
 
 It should pop up in your browser when it's ready!
