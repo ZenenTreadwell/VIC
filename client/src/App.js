@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form } from 'react-bootstrap';
 import './App.css';
-import store from 'store';
-import SpotifyLogin from './Login';
 import Collage from './Collage';
-import PostModal from './PostModal';
+import VICNav from './VICNav';
 
 function App() {
   const [msg, setMsg] = useState('not a response yet');
+  const [filter, setFilter] = useState('');
 
   const callAPIDemo = async () => {
     const response = await fetch('http://localhost:9000/newRoute', {
@@ -24,14 +22,11 @@ function App() {
     callAPIDemo();
   }, []);
 
-  const spotifyToken = store.get("SPOTIFY_TOKEN");
-
   return (
     <div className="App">
       <header className="App-header">
-        <Collage />
-        <SpotifyLogin />
-        <p>{spotifyToken? `Check out my spotify token! ${spotifyToken}` : "No token :("}</p>
+        <VICNav filter={filter} setFilter={setFilter} />
+        <Collage filter={filter} setFilter={setFilter} />
         <p>
           This is a message from the API: {msg}
         </p>

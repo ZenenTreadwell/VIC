@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Navbar } from 'react-bootstrap';
 import './App.css';
+import streamAPI from './streamAPI';
 import store from 'store';
 
 function SpotifyLogin() {
+  const [spotifyAPI, setSpotifyAPI] = useState(undefined);
+  const [user, setUser] = useState(undefined);
   const authEndpoint = 'https://accounts.spotify.com/authorize';
 
   // Replace with your app's client ID, redirect URI and desired scopes
@@ -32,6 +35,7 @@ function SpotifyLogin() {
 
       let _token = hash.access_token;
       if (_token) {
+        store.set('PLATFORM', 'spotify');
         store.set('SPOTIFY_TOKEN', _token);
       }
     }
@@ -39,20 +43,37 @@ function SpotifyLogin() {
     getTokenFromHash();
   }, []);
 
-  const token = store.get('SPOTIFY_TOKEN');
+  if (!Boolean(user)) {
+    const token = store.get('SPOTIFY_TOKEN');
+    if (token && !spotifyAPI) {
+      const api = streamAPI('spotify', token);
+      setSpotifyAPI(api);
+      api.getMe().then(user => setUser(user));
+    }
+  }
+
+  const handleLogout = () => {
+    console.log("Logging out");
+    setSpotifyAPI(undefined);
+    store.set('SPOTIFY_TOKEN', null);
+    store.set('PLATFORM', null);
+  }
 
   return (
     <div>
-      {!token && (
+      {!Boolean(spotifyAPI) && (
         <Button
+          variant="outline-info"
           href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
         >
           Login to Spotify
         </Button>
       )}
-      {token && (
-        // Pass this token to the main application
-        <p>Login Successful!</p>
+      {Boolean(spotifyAPI) && (
+        <>
+          <Navbar.Text className="p-2">Logged in as {user?.display_name}</Navbar.Text>
+          <Button variant="info" onClick={handleLogout}>Log Out</Button>
+        </>
       )}
     </div>
   );

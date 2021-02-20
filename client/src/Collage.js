@@ -8,8 +8,9 @@ import store from 'store';
 import ReactTagInput from "@pathofdev/react-tag-input";
 import "@pathofdev/react-tag-input/build/index.css";
 
-function Collage() {
+function Collage({ filter }) {
   const [songs, setSongs] = useState([]);
+  const [filteredSongs, setFilteredSongs] = useState([]);
   // const [query, setQuery] = useState(false);
 
   const getSongs = async () => {
@@ -28,8 +29,8 @@ function Collage() {
   }, []);
 
   useEffect(() => {
-    console.log(songs);
-  }, [songs]);
+    setFilteredSongs(songs.filter((song) => song.tags.includes(filter)));
+  }, [songs, filter]);
 
   const postToAPI = async (json) => {
     console.log(JSON.stringify(json));
@@ -62,8 +63,8 @@ function Collage() {
     }
   };
 
+  const streamPlatform = store.get("PLATFORM");
   const spotifyToken = store.get("SPOTIFY_TOKEN");
-  const streamPlatform = 'spotify';
   const stream = streamAPI(streamPlatform, spotifyToken);
 
   const callback = (err, res) => {
@@ -107,10 +108,12 @@ function Collage() {
             readOnly={true}
           />
         </Card.Body>
+        { streamPlatform &&
         <Card.Body>
           <Button onClick={handleClick} spotifyuri={URIs[streamPlatform]} func='queue' className="mr-1">Queue</Button>
           <Button onClick={handleClick} spotifyuri={URIs[streamPlatform]} func='play'>Play Now</Button>
         </Card.Body>
+        }
         <Card.Footer>
           <small className="text-muted">Posted by { user === -1 ? "Zenen" : "Someone"} {fuzzyDateOffset(created_at)}</small>
         </Card.Footer>
@@ -124,7 +127,10 @@ function Collage() {
         <Card bg="secondary" className="p-2" key="add">
           <PostModal getSongs={getSongs}/>
         </Card>
-        {songs.map(song => renderCard(song))}
+        {!filter
+          ? songs.map(song => renderCard(song))
+          : filteredSongs.map(song => renderCard(song))
+        }
       </CardColumns>
     </Container>
   );
