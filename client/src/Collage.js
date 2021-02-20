@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, CardDeck, Container } from 'react-bootstrap';
+import { Button, Card, CardColumns, Container } from 'react-bootstrap';
 import './App.css';
+import PostModal from './PostModal';
 import streamAPI from './streamAPI';
+import fuzzyDateOffset from './fuzzyDateOffset';
 import store from 'store';
+import ReactTagInput from "@pathofdev/react-tag-input";
+import "@pathofdev/react-tag-input/build/index.css";
 
 function Collage() {
   const [songs, setSongs] = useState([]);
@@ -22,6 +26,10 @@ function Collage() {
   useEffect(() => {
     getSongs();
   }, []);
+
+  useEffect(() => {
+    console.log(songs);
+  }, [songs]);
 
   const postToAPI = async (json) => {
     console.log(JSON.stringify(json));
@@ -82,33 +90,42 @@ function Collage() {
   }
 
   const renderCard = (json) => {
-    const uniqueID = json.entityUniqueId;
-    
-    // This should be in the database
-    const URIs = Object.keys(json.linksByPlatform).reduce((a,v) => ({ ...a, [v]: json.linksByPlatform[v].entityUniqueId.split("::")[1]}), {});
-    
-    const data = json.entitiesByUniqueId[uniqueID];
+    const { entryID, URIs, commentary, songlink, tags, user, created_at } = json;
+    const uniqueID = entryID;
+    const data = songlink.entitiesByUniqueId[uniqueID];
     return (
-      <Card key={uniqueID}>
+      <Card className="shadow" key={uniqueID}>
         <Card.Img variant="top" src={data.thumbnailUrl} />
         <Card.Body>
           <Card.Title className="h2">{data.title} by {data.artistName}</Card.Title>
-          <Card.Text className="h6">This one is gonna be a lil demo</Card.Text>
-          <Button onClick={handleClick} spotifyuri={URIs.spotify} func='queue' className="mr-1">Queue</Button>
-          <Button onClick={handleClick} spotifyuri={URIs.spotify} func='play'>Play Now</Button>
+          <Card.Text className="h6 font-italic">{commentary || "No Comment"}</Card.Text>
+        </Card.Body>
+        <Card.Body>
+          <Card.Text className="h4 float-left">Tags</Card.Text>
+          <ReactTagInput
+            tags={tags}
+            readOnly={true}
+          />
+        </Card.Body>
+        <Card.Body>
+          <Button onClick={handleClick} spotifyuri={URIs[streamPlatform]} func='queue' className="mr-1">Queue</Button>
+          <Button onClick={handleClick} spotifyuri={URIs[streamPlatform]} func='play'>Play Now</Button>
         </Card.Body>
         <Card.Footer>
-          <small className="text-muted">Posted by Zenen 1 min ago</small>
+          <small className="text-muted">Posted by { user === -1 ? "Zenen" : "Someone"} {fuzzyDateOffset(created_at)}</small>
         </Card.Footer>
       </Card>
     )
   }
 
   return (
-    <Container className="m-3">
-      <CardDeck className="text-dark">
+    <Container className="m-5">
+      <CardColumns className="text-dark">
+        <Card bg="secondary" className="p-2" key="add">
+          <PostModal getSongs={getSongs}/>
+        </Card>
         {songs.map(song => renderCard(song))}
-      </CardDeck>
+      </CardColumns>
     </Container>
   );
 }

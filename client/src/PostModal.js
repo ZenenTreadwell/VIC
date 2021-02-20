@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button, Media, Form, Modal } from 'react-bootstrap';
 import './App.css';
-import store from 'store';
 import ReactTagInput from "@pathofdev/react-tag-input";
 import "@pathofdev/react-tag-input/build/index.css";
 
-function PostModal() {
+function PostModal({ getSongs }) {
   const [visible, setVisible] = useState(false);
   const [postData, setPostData] = useState(null);
   const [query, setQuery] = useState(false);
@@ -40,8 +39,7 @@ function PostModal() {
 
   const postToAPI = async (json) => {
     if (mediaType === "song") {
-      console.log(JSON.stringify(json));
-      const result = await fetch('http://localhost:9000/posts/songs/', {
+      const response = await fetch('http://localhost:9000/posts/songs/', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -49,7 +47,10 @@ function PostModal() {
         },
         body: JSON.stringify(json),
       });
-      console.log(result);
+
+      if (response.ok) {
+        getSongs();
+      }
     }
   }
 
@@ -63,6 +64,7 @@ function PostModal() {
     event.preventDefault();
     const songCommentary = event.target[1].value;
     const URIs = Object.keys(postData.linksByPlatform).reduce((a,v) => ({ ...a, [v]: postData.linksByPlatform[v].entityUniqueId.split("::")[1]}), {});
+    const uniqueID = postData.linksByPlatform.spotify.entityUniqueId || postData.entityUniqueId;
 
     // TODO: Add users
     const user = -1;
@@ -72,7 +74,8 @@ function PostModal() {
       postData,
       URIs,
       tags,
-      songCommentary
+      songCommentary,
+      uniqueID,
     };
 
     postToAPI(data);
@@ -106,11 +109,10 @@ function PostModal() {
     return options[Math.floor(Math.random() * options.length)];
   }
 
-  
   return (
     <>
-      <Button variant="primary" onClick={handleShow}>
-        New Post
+      <Button className="shadow" variant="light" onClick={handleShow}>
+        + New Post
       </Button>
 
       <Modal show={visible} onHide={handleClose}>
@@ -142,7 +144,7 @@ function PostModal() {
                 </Form.Group>
                 <Form.Group controlId="commentary">
                   <Form.Label className="font-weight-bold">Say something about this {mediaType}</Form.Label>
-                  <Form.Control type="text" placeholder="(optional)" />
+                  <Form.Control type="textarea" placeholder="(optional)" />
                 </Form.Group>
 
                 <Button variant="primary" type="submit" className="float-right">Share</Button>
