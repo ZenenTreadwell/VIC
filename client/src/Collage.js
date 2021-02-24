@@ -8,10 +8,11 @@ import store from 'store';
 import ReactTagInput from "@pathofdev/react-tag-input";
 import "@pathofdev/react-tag-input/build/index.css";
 
-function Collage({ filter }) {
+function Collage({ filter, platform }) {
   const [songs, setSongs] = useState([]);
+  const [accessToken, setAccessToken] = useState(null);
+  const [stream, setStream] = useState(null);
   const [filteredSongs, setFilteredSongs] = useState([]);
-  // const [query, setQuery] = useState(false);
 
   const getSongs = async () => {
     const response = await fetch('http://localhost:9000/posts/songs/', {
@@ -26,11 +27,16 @@ function Collage({ filter }) {
 
   useEffect(() => {
     getSongs();
-  }, []);
+    if (platform === 'Spotify') setAccessToken(store.get("SPOTIFY_TOKEN"));
+  }, [platform]);
 
   useEffect(() => {
     setFilteredSongs(songs.filter((song) => song.tags.includes(filter)));
   }, [songs, filter]);
+
+  useEffect(() => {
+    setStream(streamAPI(platform, accessToken));
+  }, [platform, accessToken]);
 
   const postToAPI = async (json) => {
     console.log(JSON.stringify(json));
@@ -46,8 +52,32 @@ function Collage({ filter }) {
     console.log(result);
   }
 
+  const callback = (err, res) => {
+    if (err) {
+      if (err.status === 401) {
+        store.set("SPOTIFY_TOKEN", null);
+      }
+      console.log('logging this error');
+      console.error(err);
+    } else {
+      console.log("Success!");
+    }
+  }
+
+  const queueSong = async (songID) => {
+    if (platform === 'Spotify') {
+      stream?.queue(`spotify:track:${songID['spotify']}`, {}, callback);
+    }
+  }
+
+  const nextSong = async () => {
+    if (platform === 'Spotify') {
+      stream?.skipToNext();
+    }
+  }
+
   const handleClick = (event) => {
-    const songID = event.target.getAttribute("spotifyuri");
+    const songID = JSON.parse(event.target.getAttribute("uri"));
     const func = event.target.getAttribute("func");
     
     switch (func) {
@@ -63,40 +93,13 @@ function Collage({ filter }) {
     }
   };
 
-  const streamPlatform = store.get("PLATFORM");
-  const spotifyToken = store.get("SPOTIFY_TOKEN");
-  const stream = streamAPI(streamPlatform, spotifyToken);
-
-  const callback = (err, res) => {
-    if (err) {
-      if (err.status === 401) {
-        store.set("SPOTIFY_TOKEN", null);
-      }
-      console.error(err);
-    } else {
-      console.log("Success!");
-    }
-  }
-
-  const queueSong = async (songID) => {
-    if (streamPlatform === 'spotify') {
-      stream.queue(`spotify:track:${songID}`, {}, callback);
-    }
-  }
-
-  const nextSong = async () => {
-    if (streamPlatform === 'spotify') {
-      stream.skipToNext();
-    }
-  }
-
   const renderCard = (json) => {
     const { entryID, URIs, commentary, songlink, tags, user, created_at } = json;
     const uniqueID = entryID;
     const data = songlink.entitiesByUniqueId[uniqueID];
     return (
       <Card className="shadow" key={uniqueID}>
-        <Card.Img variant="top" src={data.thumbnailUrl} />
+        <Card.Img className="p-2" variant="top" src={data.thumbnailUrl} />
         <Card.Body>
           <Card.Title className="h2">{data.title} by {data.artistName}</Card.Title>
           <Card.Text className="h6 font-italic">{commentary || "No Comment"}</Card.Text>
@@ -108,10 +111,10 @@ function Collage({ filter }) {
             readOnly={true}
           />
         </Card.Body>
-        { streamPlatform &&
+        { stream &&
         <Card.Body>
-          <Button onClick={handleClick} spotifyuri={URIs[streamPlatform]} func='queue' className="mr-1">Queue</Button>
-          <Button onClick={handleClick} spotifyuri={URIs[streamPlatform]} func='play'>Play Now</Button>
+          <Button onClick={handleClick} uri={JSON.stringify(URIs)} func='queue' className="mr-1">Queue</Button>
+          <Button onClick={handleClick} uri={JSON.stringify(URIs)} func='play'>Play Now</Button>
         </Card.Body>
         }
         <Card.Footer>

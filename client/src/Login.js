@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Navbar } from 'react-bootstrap';
+import { Button, ButtonGroup, Dropdown, Navbar, Row } from 'react-bootstrap';
 import './App.css';
-import streamAPI from './streamAPI';
 import store from 'store';
 
 function SpotifyLogin() {
-  const [spotifyAPI, setSpotifyAPI] = useState(undefined);
-  const [user, setUser] = useState(undefined);
   const authEndpoint = 'https://accounts.spotify.com/authorize';
 
-  // Replace with your app's client ID, redirect URI and desired scopes
   const clientId = "1ebfdbee7eaa4ad9acbf5f4408e379d4";
   const redirectUri = "https://localhost:3000";
   const scopes = [
@@ -17,6 +13,12 @@ function SpotifyLogin() {
     "user-read-playback-state",
     "user-modify-playback-state",
   ];
+
+  return `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`
+}
+
+function LoginSelector({platform, setPlatform}) {
+  const [target, setTarget] = useState(null);
 
   useEffect(() => {
     const getTokenFromHash = () => {
@@ -35,48 +37,60 @@ function SpotifyLogin() {
 
       let _token = hash.access_token;
       if (_token) {
-        store.set('PLATFORM', 'spotify');
+        setPlatform('Spotify');
         store.set('SPOTIFY_TOKEN', _token);
       }
     }
 
     getTokenFromHash();
-  }, []);
-
-  if (!Boolean(user)) {
-    const token = store.get('SPOTIFY_TOKEN');
-    if (token && !spotifyAPI) {
-      const api = streamAPI('spotify', token);
-      setSpotifyAPI(api);
-      api.getMe().then(user => setUser(user));
-    }
-  }
+  }, [setPlatform]);
 
   const handleLogout = () => {
+    console.log(`target is ${target}`);
+    console.log(`platform is ${platform}`);
     console.log("Logging out");
-    setSpotifyAPI(undefined);
-    store.set('SPOTIFY_TOKEN', null);
+    setTarget(undefined);
+    setPlatform(null);
     store.set('PLATFORM', null);
+  }
+
+  const handleLogin = (event) => {
+    if (target === 'Spotify') {
+      window.location.href = SpotifyLogin();
+    }
+    console.log("hi");
+    console.log(`target is ${target}`);
+    console.log(`platform is ${platform}`);
   }
 
   return (
     <div>
-      {!Boolean(spotifyAPI) && (
-        <Button
-          variant="outline-info"
-          href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
-        >
-          Login to Spotify
-        </Button>
-      )}
-      {Boolean(spotifyAPI) && (
-        <>
-          <Navbar.Text className="p-2">Logged in as {user?.display_name}</Navbar.Text>
-          <Button variant="info" onClick={handleLogout}>Log Out</Button>
-        </>
-      )}
+      { platform &&
+      <Row>
+        <Navbar.Text className="pr-2">Logged into {platform}</Navbar.Text>
+        <Button variant="info" onClick={handleLogout}>Log Out</Button>
+      </Row>
+      }
+
+
+      {!platform &&
+        <Dropdown as={ButtonGroup}>
+          <Button onClick={handleLogin} variant="outline-info">{target? `Login to ${target}` : "Select Platform"}</Button>
+
+          <Dropdown.Toggle split
+            variant="outline-info"
+            id="platform-selector"
+          />
+
+
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => setTarget('Spotify')}>Spotify</Dropdown.Item>
+            <Dropdown.Item onClick={() => setTarget('Tidal')}>Tidal</Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      }
     </div>
   );
 }
 
-export default SpotifyLogin;
+export {SpotifyLogin, LoginSelector};

@@ -29,7 +29,7 @@ function PostModal({ getSongs }) {
       console.log(res);
       setPostData(res);
       // Defaulting to spotify because hack
-      const uniqueID = res.linksByPlatform.spotify.entityUniqueId || res.entityUniqueId;
+      const uniqueID = res.linksByPlatform.spotify?.entityUniqueId || res.entityUniqueId;
       if (uniqueID.includes("SONG")) setMediaType("song");
       if (uniqueID.includes("ALBUM")) setMediaType("album");
     }
@@ -64,7 +64,7 @@ function PostModal({ getSongs }) {
     event.preventDefault();
     const songCommentary = event.target[1].value;
     const URIs = Object.keys(postData.linksByPlatform).reduce((a,v) => ({ ...a, [v]: postData.linksByPlatform[v].entityUniqueId.split("::")[1]}), {});
-    const uniqueID = postData.linksByPlatform.spotify.entityUniqueId || postData.entityUniqueId;
+    const uniqueID = postData.linksByPlatform.spotify?.entityUniqueId || postData.entityUniqueId;
 
     // TODO: Add users
     const user = -1;
@@ -83,7 +83,9 @@ function PostModal({ getSongs }) {
   }
 
   const renderMedia = (json) => {
-    const uniqueID = json.linksByPlatform.spotify.entityUniqueId || json.entityUniqueId;
+    console.log("JSON");
+    console.log(json);
+    const uniqueID = json.linksByPlatform.spotify?.entityUniqueId || json.entityUniqueId;
     
     const data = json.entitiesByUniqueId[uniqueID];
     return (

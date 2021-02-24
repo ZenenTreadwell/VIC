@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Nav, Navbar, Form  } from 'react-bootstrap';
+import React from 'react';
+import { Button, Nav, Navbar, Form } from 'react-bootstrap';
 import './App.css';
-import store from 'store';
-import SpotifyLogin from './Login';
+import { LoginSelector} from './Login';
 
-function VICNav({ filter, setFilter }) {
+function VICNav({ platform, setFilter, setPlatform }) {
+
   const handleSubmit = (event) => {
     event.preventDefault();
+    console.log(LoginSelector);
     setFilter(event.target[0].value);
   }
 
@@ -18,7 +19,7 @@ function VICNav({ filter, setFilter }) {
         <Button type="submit" variant="outline-info">Search</Button>
       </Form>
       <Nav className="ml-auto mr-3">
-        <SpotifyLogin />
+        <LoginSelector platform={platform} setPlatform={setPlatform} />
       </Nav>
     </Navbar>
   );
